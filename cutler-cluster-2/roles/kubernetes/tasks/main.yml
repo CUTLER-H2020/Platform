@@ -1,0 +1,16 @@
+---
+# Deploy and run the Kubernetes cluster 
+ 
+- name: Deploy Kubernetes
+  include_tasks: kube_deploy.yml
+
+# Run the master on node cc2_3  
+- name: Start Kubernetes Master
+  include_tasks: kube_run_master.yml
+  when: inventory_hostname == "cc2_3"
+
+# Run the workers on er nodes cc2_1 and cc2_2
+- name: Start Kubernetes Workers
+  include_tasks: kube_run_workers.yml
+  when: inventory_hostname == "cc2_1" or inventory_hostname == "cc2_2"
+

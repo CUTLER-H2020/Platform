@@ -1,0 +1,9 @@
+---
+# Add and run the Kubernetes worker nodes
+
+- name: Join cluster
+  become: yes
+  shell: "{{ hostvars['cc2_3'].join_command }} >> node_joined.txt"
+  args:
+    chdir: $HOME
+    creates: node_joined.txt

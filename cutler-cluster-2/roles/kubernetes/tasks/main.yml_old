@@ -1,0 +1,66 @@
+---
+# Kubernetes deploy tasks 
+
+- name: Create kube group
+  group:
+    name: kube
+    state: present
+
+- name: Create kube user
+  user:
+    name: kube
+    group: sudo
+    password: '$6$SyS3p911TAq1TXzH$ZWS78irR6RHskAorLfZ1dyR5EbTOmxjHG/edPmRQTcfhJhmC3S9EQoPk5Kv7agITMiig7bqlLF5dgk9Fw2Pg40'
+    shell: /bin/bash
+
+- name: Set up kube for passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    line: 'kube ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: Authorized keys for kube
+  authorized_key: user=kube key="{{item}}"
+  with_file:
+    - ~/.ssh/id_rsa.pub
+
+- name: Install Docker
+  apt:
+    name: docker.io
+    state: present
+    update_cache: true
+     
+- name: Install APT Transport HTTPS
+  apt:
+    name: apt-transport-https
+    state: present
+
+- name: Add Kubernetes apt-key for APT repository
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: Add Kubernetes repo
+  apt_repository:
+    repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    filename: 'kubernetes' 
+
+- name: Install kubelet
+  apt:
+    name: kubelet=1.16.0-00
+    state: present
+    update_cache: true
+
+- name: Install kubeadm
+  apt: 
+    name: kubeadm=1.16.0-00
+    state: present
+
+# Only install kubectl (master) to cc2_3 node
+- name: Install kubectl
+  apt:
+    name: kubectl=1.16.0-00
+    state: present
+    force: yes
+  when: inventory_hostname == "cc2_3"
